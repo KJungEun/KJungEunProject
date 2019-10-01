@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kakao.project.mapper.TransactionMapper">
+
+	<select id = "selectOne"  resultType="com.kakao.project.model.TransactionOneModel">
+		SELECT year, name, acctNo, sumAmt
+			FROM (SELECT SUBSTR(A.TR_DT, 1, 4) AS year, B.NAME AS name, B.ACCTNO AS acctNo, SUM(A.AMT-A.FEE) AS sumAmt,
+						 ROW_NUMBER() OVER(PARTITION BY SUBSTR(A.TR_DT, 1, 4) ORDER BY SUM(A.AMT-A.FEE)  DESC) AS RN
+				 FROM NEW_SCHEMA.TB_TRANSACTION AS A
+					, NEW_SCHEMA.TB_ACCOUNT AS B
+				 WHERE A.ACCTNO = B.ACCTNO
+				 AND A.CAN_YN = 'N'
+				 GROUP BY year, name, acctNo) C
+				WHERE RN = 1	<!-- 연도별 합계금액 최대값 -->
+				ORDER BY year;
+		</select>
+	
+	<select id = "selectTwo" resultType="com.kakao.project.model.TransactionTwoModel">
+		SELECT '2018' AS year, A.NAME AS name, A.ACCTNO as acctNo
+			FROM  NEW_SCHEMA.TB_ACCOUNT AS A
+			WHERE NOT EXISTS 
+				(SELECT 1 FROM NEW_SCHEMA.TB_TRANSACTION AS B
+				WHERE A.ACCTNO = B.ACCTNO
+				AND B.CAN_YN = 'N'
+				AND SUBSTR(B.TR_DT, 1, 4) = '2018')	<!-- 2018 미존재  -->
+		UNION ALL
+		SELECT '2019' AS year, A.NAME as name, A.ACCTNO as acctNo
+			FROM  NEW_SCHEMA.TB_ACCOUNT AS A
+			WHERE NOT EXISTS 
+				(SELECT 1 FROM NEW_SCHEMA.TB_TRANSACTION AS B
+				WHERE A.ACCTNO = B.ACCTNO
+				AND B.CAN_YN = 'N'
+				AND SUBSTR(B.TR_DT, 1, 4) = '2019')	<!-- 2019 미존재  -->
+		ORDER BY year, acctNo;
+	</select>
+	 
+	<select id = "selectThree_1" resultType="com.kakao.project.model.TransactionThreeModel">
+		SELECT C.BRNAME as brName, C.BRCODE as brCode, SUM(A.AMT) AS sumAmt
+			FROM NEW_SCHEMA.TB_TRANSACTION AS A
+				, NEW_SCHEMA.TB_ACCOUNT AS B
+			    , NEW_SCHEMA.TB_BRANCH AS C
+			WHERE A.ACCTNO = B.ACCTNO
+			AND B.BRCODE = C.BRCODE
+			AND A.CAN_YN = 'N'
+			AND SUBSTR(A.TR_DT, 1, 4) = '2018'
+			GROUP BY C.BRNAME, C.BRCODE
+			ORDER BY sumAmt DESC;
+	</select>
+	
+	<select id = "selectThree_2" resultType="com.kakao.project.model.TransactionThreeModel">
+		SELECT C.BRNAME as brName, C.BRCODE as brCode, SUM(A.AMT) AS sumAmt
+			FROM NEW_SCHEMA.TB_TRANSACTION AS A
+				, NEW_SCHEMA.TB_ACCOUNT AS B
+			    , NEW_SCHEMA.TB_BRANCH AS C
+			WHERE A.ACCTNO = B.ACCTNO
+			AND B.BRCODE = C.BRCODE
+			AND A.CAN_YN = 'N'
+			AND SUBSTR(A.TR_DT, 1, 4) = '2019'
+			GROUP BY C.BRNAME, C.BRCODE
+			ORDER BY sumAmt DESC;
+	</select>
+	
+	<select id = "selectFour" parameterType="com.kakao.project.model.TransactionFourModel" resultType="com.kakao.project.model.TransactionFourModel">
+		SELECT C.BRNAME as brName, C.BRCODE as brCode, SUM(A.AMT) AS sumAmt
+			FROM NEW_SCHEMA.TB_TRANSACTION AS A
+				, NEW_SCHEMA.TB_ACCOUNT AS B
+			    , NEW_SCHEMA.TB_BRANCH AS C
+			WHERE A.ACCTNO = B.ACCTNO
+			AND B.BRCODE = C.BRCODE
+			AND A.CAN_YN = 'N'
+			<choose>
+				<when test="brName!= null and brName == '판교점'">
+					AND C.BRNAME IN ('판교점', '분당점') 
+				</when>
+				<when test="brName == '잠실점' or brName == '강남점'">
+					AND C.BRNAME = #{brName}
+				</when>
+				<otherwise>
+					AND 0=1		<!-- 판교점,잠실점,강남점이 아니면 미추출 -->
+				</otherwise>
+			</choose>
+	</select>
+	
+</mapper>
