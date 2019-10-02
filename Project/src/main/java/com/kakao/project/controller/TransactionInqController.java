@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,13 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.kakao.project.model.TransactionFourModel;
-import com.kakao.project.model.TransactionOneModel;
-import com.kakao.project.model.TransactionThreeModel;
-import com.kakao.project.model.TransactionTwoModel;
+import com.kakao.project.model.TransactionModel;
 import com.kakao.project.service.TransactionService;
 
-import javassist.NotFoundException;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
@@ -31,12 +28,15 @@ public class TransactionInqController {
 	@Autowired
 	private TransactionService transactionServiceImpl;
 	
+	/********
+	 * 1번 *
+	 *******/
 	@RequestMapping(value = "/selectOne")
 	public ModelAndView selectOne (HttpServletRequest request) throws Exception{
 		
 		JSONArray jsonArray = new JSONArray();
 		
-		List<TransactionOneModel> list = transactionServiceImpl.selectOne();
+		List<LinkedHashMap<String, TransactionModel>> list = transactionServiceImpl.selectOne();
 
 		//jsonArray.add(list)는 []가 중복됨
 		jsonArray.add(list.get(0));
@@ -46,15 +46,17 @@ public class TransactionInqController {
 		System.out.println("view ; "+view);
 		return view;
 
-		
 	}
 
+	/********
+	 * 2번 *
+	 *******/
 	@RequestMapping(value = "/selectTwo")
 	public ModelAndView selectTwo (HttpServletRequest request) throws Exception{
 		
 		JSONArray jsonArray = new JSONArray();
         
-		List<TransactionTwoModel> list = transactionServiceImpl.selectTwo();
+		List<LinkedHashMap<String, TransactionModel>> list = transactionServiceImpl.selectTwo();
 
 		//jsonArray.add(list)는 []가 중복됨
 		for(int i=0 ; i<list.size() ; i++) {
@@ -66,6 +68,9 @@ public class TransactionInqController {
 		return view;
 	}
 
+	/********
+	 * 3번 *
+	 *******/
 	@RequestMapping(value = "/selectThree")
 	public ModelAndView selectThree (HttpServletRequest request) throws Exception{
 		
@@ -74,8 +79,8 @@ public class TransactionInqController {
 		
 		JSONArray jsonArrayOut = new JSONArray();
 		
-		List<TransactionThreeModel> dataList_1 = transactionServiceImpl.selectThree_1();
-		List<TransactionThreeModel> dataList_2 = transactionServiceImpl.selectThree_2();
+		List<LinkedHashMap<String, TransactionModel>> dataList_1 = transactionServiceImpl.selectThree_1();
+		List<LinkedHashMap<String, TransactionModel>> dataList_2 = transactionServiceImpl.selectThree_2();
 
 		jsonObjectOut1.put("year", 2018);
 		jsonObjectOut1.put("dataList", dataList_1);
@@ -89,31 +94,36 @@ public class TransactionInqController {
 		
 		return view;
 	}
-
 	
+	/********
+	 * 4번 *
+	 *******/
 	@RequestMapping(value = "/selectFour/{brName}")
 	public ModelAndView selectFour (@ModelAttribute("transactionFourModel") JSONObject jsonObjectInput, @PathVariable String brName,
 									HttpServletRequest request, HttpServletResponse response) throws Exception{
 		
-		JSONObject jsonObjectInOut = new JSONObject();
-        
 		jsonObjectInput.put("brName", brName);
-		
-		List<TransactionFourModel> outList = transactionServiceImpl.selectFour(jsonObjectInput);
-
-		//결과 null이면 exception 처리
-		if (outList.get(0) == null) {
-			throw new NotFoundException(brName);
+		LinkedHashMap<String, TransactionModel> outList = new LinkedHashMap<String, TransactionModel>();
+		try {
+			outList = transactionServiceImpl.selectFour(jsonObjectInput);
+		} catch (Exception e){
+			e.printStackTrace();
 		}
 		
-		jsonObjectInOut.put("outList", outList);
-		ModelAndView view = new  ModelAndView("selectAll", "selectData", jsonObjectInOut);
+		if (outList.get("brCode")==null) {
+			throw new NullPointerException();
+		}
+		//JSONArray 변환
+		JSONArray jsonArrayOut = new JSONArray();
+		jsonArrayOut.add(outList);
+
+		ModelAndView view = new  ModelAndView("selectAll", "selectData", jsonArrayOut);
 		
 		return view;
 	}
 	
 
-	@ExceptionHandler(NotFoundException.class)
+	@ExceptionHandler(NullPointerException.class)
 	public ModelAndView exceptionHandler(HttpServletRequest request, HttpServletResponse response){
 		
 		JSONObject errorData = new JSONObject();

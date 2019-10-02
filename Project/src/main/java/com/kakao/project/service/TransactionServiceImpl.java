@@ -1,5 +1,7 @@
 package com.kakao.project.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,13 +9,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import com.kakao.project.dao.TransactionDaoService;
-import com.kakao.project.model.TransactionOneModel;
-import com.kakao.project.model.TransactionTwoModel;
+import com.kakao.project.model.TransactionModel;
 
 import net.minidev.json.JSONObject;
-
-import com.kakao.project.model.TransactionThreeModel;
-import com.kakao.project.model.TransactionFourModel;
 
 @Service
 @Repository
@@ -23,40 +21,41 @@ public class TransactionServiceImpl implements TransactionService{
 	private TransactionDaoService transactionDaoService;
 	
 	@Override
-	public List<TransactionOneModel> selectOne() throws Exception {
+	public List<LinkedHashMap<String, TransactionModel>>selectOne() throws Exception {
 		
-		List<TransactionOneModel> list = null;
+		List<LinkedHashMap<String, TransactionModel>> list = null;
 		list = transactionDaoService.selectOne();
 		return list;
 	}
 	
 	@Override
-	public List<TransactionTwoModel> selectTwo() throws Exception {
+	public List<LinkedHashMap<String, TransactionModel>> selectTwo() throws Exception {
 		
-		List<TransactionTwoModel> list = null;
-		list = transactionDaoService.selectTwo();
+		List<LinkedHashMap<String, TransactionModel>> list = transactionDaoService.selectTwo();
 		return list;
 	}
 	
+	
 	@Override
-	public List<TransactionThreeModel> selectThree_1() throws Exception {
+	public List<LinkedHashMap<String, TransactionModel>> selectThree_1() throws Exception {
 		
-		List<TransactionThreeModel> list = null;
-		list = transactionDaoService.selectThree_1();
-		return list;
+		List<LinkedHashMap<String,TransactionModel>> map = new ArrayList<LinkedHashMap<String, TransactionModel>>();
+		map = transactionDaoService.selectThree_1();
+		return map;
 	}
+	
 	@Override
-	public List<TransactionThreeModel> selectThree_2() throws Exception {
+	public List<LinkedHashMap<String, TransactionModel>> selectThree_2() throws Exception {
 		
-		List<TransactionThreeModel> list = null;
-		list = transactionDaoService.selectThree_2();
-		return list;
+		List<LinkedHashMap<String,TransactionModel>> map = new ArrayList<LinkedHashMap<String, TransactionModel>>();
+		map = transactionDaoService.selectThree_2();
+		return map;
 	}
-
+	
 	@Override
-	public List<TransactionFourModel> selectFour(JSONObject jsonObjectInput) throws Exception {
+	public LinkedHashMap<String, TransactionModel> selectFour(JSONObject jsonObjectInput) throws Exception {
 		
-		List<TransactionFourModel> list = null;
+		LinkedHashMap<String, TransactionModel> list = null;
 		list = transactionDaoService.selectFour(jsonObjectInput);
 		return list;
 	}

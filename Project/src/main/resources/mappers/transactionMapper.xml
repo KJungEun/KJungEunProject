@@ -6,7 +6,7 @@
 
 <mapper namespace="com.kakao.project.mapper.TransactionMapper">
 
-	<select id = "selectOne"  resultType="com.kakao.project.model.TransactionOneModel">
+	<select id = "selectOne"  resultType="java.util.LinkedHashMap">
 		SELECT year, name, acctNo, sumAmt
 			FROM (SELECT SUBSTR(A.TR_DT, 1, 4) AS year, B.NAME AS name, B.ACCTNO AS acctNo, SUM(A.AMT-A.FEE) AS sumAmt,
 						 ROW_NUMBER() OVER(PARTITION BY SUBSTR(A.TR_DT, 1, 4) ORDER BY SUM(A.AMT-A.FEE)  DESC) AS RN
@@ -19,8 +19,8 @@
 				ORDER BY year;
 		</select>
 	
-	<select id = "selectTwo" resultType="com.kakao.project.model.TransactionTwoModel">
-		SELECT '2018' AS year, A.NAME AS name, A.ACCTNO as acctNo
+	<select id = "selectTwo" resultType="java.util.LinkedHashMap">
+		SELECT 2018 AS year, A.NAME AS name, A.ACCTNO as acctNo
 			FROM  NEW_SCHEMA.TB_ACCOUNT AS A
 			WHERE NOT EXISTS 
 				(SELECT 1 FROM NEW_SCHEMA.TB_TRANSACTION AS B
@@ -28,7 +28,7 @@
 				AND B.CAN_YN = 'N'
 				AND SUBSTR(B.TR_DT, 1, 4) = '2018')	<!-- 2018 미존재  -->
 		UNION ALL
-		SELECT '2019' AS year, A.NAME as name, A.ACCTNO as acctNo
+		SELECT 2019 AS year, A.NAME as name, A.ACCTNO as acctNo
 			FROM  NEW_SCHEMA.TB_ACCOUNT AS A
 			WHERE NOT EXISTS 
 				(SELECT 1 FROM NEW_SCHEMA.TB_TRANSACTION AS B
@@ -38,7 +38,7 @@
 		ORDER BY year, acctNo;
 	</select>
 	 
-	<select id = "selectThree_1" resultType="com.kakao.project.model.TransactionThreeModel">
+	<select id = "selectThree_1" resultType="java.util.LinkedHashMap">
 		SELECT C.BRNAME as brName, C.BRCODE as brCode, SUM(A.AMT) AS sumAmt
 			FROM NEW_SCHEMA.TB_TRANSACTION AS A
 				, NEW_SCHEMA.TB_ACCOUNT AS B
@@ -50,8 +50,7 @@
 			GROUP BY C.BRNAME, C.BRCODE
 			ORDER BY sumAmt DESC;
 	</select>
-	
-	<select id = "selectThree_2" resultType="com.kakao.project.model.TransactionThreeModel">
+	<select id = "selectThree_2" resultType="java.util.LinkedHashMap">
 		SELECT C.BRNAME as brName, C.BRCODE as brCode, SUM(A.AMT) AS sumAmt
 			FROM NEW_SCHEMA.TB_TRANSACTION AS A
 				, NEW_SCHEMA.TB_ACCOUNT AS B
@@ -63,8 +62,8 @@
 			GROUP BY C.BRNAME, C.BRCODE
 			ORDER BY sumAmt DESC;
 	</select>
-	
-	<select id = "selectFour" parameterType="com.kakao.project.model.TransactionFourModel" resultType="com.kakao.project.model.TransactionFourModel">
+
+	<select id = "selectFour" parameterType="com.kakao.project.model.TransactionModel" resultType="java.util.LinkedHashMap">
 		SELECT C.BRNAME as brName, C.BRCODE as brCode, SUM(A.AMT) AS sumAmt
 			FROM NEW_SCHEMA.TB_TRANSACTION AS A
 				, NEW_SCHEMA.TB_ACCOUNT AS B
